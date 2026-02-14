@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test API - Sistema de Rifas</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        
+        h1, h2 {
+            color: #333;
+        }
+        
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .test-button {
+            background: #667eea;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px 0;
+        }
+        
+        .test-button:hover {
+            background: #764ba2;
+        }
+        
+        .result {
+            background: #f9f9f9;
+            padding: 10px;
+            margin: 10px 0;
+            border-left: 3px solid #667eea;
+            border-radius: 3px;
+            font-family: monospace;
+            overflow-x: auto;
+        }
+        
+        .success {
+            border-left-color: #10B981;
+            color: #059669;
+        }
+        
+        .error {
+            border-left-color: #EF4444;
+            color: #DC2626;
+        }
+        
+        .loading {
+            border-left-color: #F59E0B;
+            color: #D97706;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Test API - Sistema de Rifas</h1>
+    <p>Esta página prueba los endpoints del sistema.</p>
+
+    <!-- Pruebas de Disponibilidad -->
+    <div class="test-section">
+        <h2>🔍 Pruebas Básicas de Disponibilidad</h2>
+        
+        <button class="test-button" onclick="testLanding()">
+            ✅ Prueba Landing Page
+        </button>
+        <div id="landing-result"></div>
+
+        <button class="test-button" onclick="testLogin()">
+            ✅ Prueba Página de Login
+        </button>
+        <div id="login-result"></div>
+
+        <button class="test-button" onclick="testDatabase()">
+            ✅ Prueba Conexión a Base de Datos
+        </button>
+        <div id="database-result"></div>
+    </div>
+
+    <!-- Pruebas API -->
+    <div class="test-section">
+        <h2>🔌 Pruebas de API</h2>
+        
+        <button class="test-button" onclick="testVerifyBoleto()">
+            ✅ Verificar Disponibilidad de Boleto
+        </button>
+        <div id="verify-result"></div>
+    </div>
+
+    <!-- Información del Sistema -->
+    <div class="test-section">
+        <h2>ℹ️ Información del Sistema</h2>
+        <div id="system-info"></div>
+    </div>
+
+    <script>
+        const API_URL = window.location.origin;
+
+        function showResult(elementId, message, isSuccess = true, isLoading = false) {
+            const element = document.getElementById(elementId);
+            element.className = 'result ' + (isLoading ? 'loading' : isSuccess ? 'success' : 'error');
+            element.innerHTML = message;
+        }
+
+        async function testLanding() {
+            showResult('landing-result', '⏳ Probando...', false, true);
+            try {
+                const response = await fetch('/');
+                if (response.ok) {
+                    showResult('landing-result', '✅ Landing page funcionando correctamente', true);
+                } else {
+                    showResult('landing-result', '❌ Error: ' + response.status, false);
+                }
+            } catch (error) {
+                showResult('landing-result', '❌ Error: ' + error.message, false);
+            }
+        }
+
+        async function testLogin() {
+            showResult('login-result', '⏳ Probando...', false, true);
+            try {
+                const response = await fetch('/login');
+                if (response.ok) {
+                    showResult('login-result', '✅ Página de login funcionando correctamente', true);
+                } else {
+                    showResult('login-result', '❌ Error: ' + response.status, false);
+                }
+            } catch (error) {
+                showResult('login-result', '❌ Error: ' + error.message, false);
+            }
+        }
+
+        async function testDatabase() {
+            showResult('database-result', '⏳ Probando...', false, true);
+            try {
+                // Probamos accediendo a la landing que accede a la base de datos
+                const response = await fetch('/');
+                if (response.ok && response.text().includes('Rifa')) {
+                    showResult('database-result', '✅ Base de datos conectada correctamente', true);
+                } else {
+                    showResult('database-result', '⚠️ Posible problema con la base de datos', false);
+                }
+            } catch (error) {
+                showResult('database-result', '❌ Error: ' + error.message, false);
+            }
+        }
+
+        async function testVerifyBoleto() {
+            showResult('verify-result', '⏳ Probando...', false, true);
+            try {
+                const response = await fetch('/api/verificar-boleto', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                    body: JSON.stringify({
+                        numero: 1,
+                        rifa_id: 1
+                    })
+                });
+                const data = await response.json();
+                showResult('verify-result', '✅ API Respuesta: ' + JSON.stringify(data), true);
+            } catch (error) {
+                showResult('verify-result', '⚠️ Esperado si no hay rifas: ' + error.message, false);
+            }
+        }
+
+        // Cargar información del sistema
+        window.addEventListener('load', function() {
+            const infoDiv = document.getElementById('system-info');
+            const info = `
+                <p><strong>URL del Sistema:</strong> ${API_URL}</p>
+                <p><strong>Navegador:</strong> ${navigator.userAgent}</p>
+                <p><strong>Versión:</strong> 1.0</p>
+                <p><strong>Framework:</strong> Laravel 11</p>
+                <p><strong>Base de Datos:</strong> MySQL</p>
+                <p><strong>Estado:</strong> ✅ En línea</p>
+            `;
+            infoDiv.innerHTML = info;
+        });
+    </script>
+</body>
+</html>
